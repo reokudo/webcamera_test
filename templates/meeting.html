@@ -1,0 +1,186 @@
+<!-- meeting.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>オンライン会議</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.js"></script>
+    <style>
+        #video-container {
+            position: relative;
+            width: 640px;
+            height: 360px;
+            overflow: hidden;
+        }
+
+        #video-container video {
+            width: 100%;
+            height: auto;
+        }
+    
+        #comments-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+        }
+    
+        .scroll-comment {
+            position: relative;
+            white-space: nowrap;
+            animation: scroll 10s linear infinite;
+        }
+    
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <h1>オンライン会議</h1>
+    <p>会議ID: {{ meeting_id }}</p>
+    <div id="video-container" style="position: relative;">
+        <div id="comments-overlay"></div>
+        <video id="localVideo" autoplay muted></video>
+        <video id="remoteVideo" autoplay></video>
+    </div>
+    
+    <!-- <h2>QRコード</h2>
+    <img src="data:image/png;base64,{{ qr_img_data }}" alt="QR Code"> -->
+
+    <h2>コメント</h2>
+    <form id="comment-form">
+        <input type="text" id="comment" name="comment" placeholder="コメントを入力" required>
+        <button type="submit">送信</button>
+    </form>
+
+    <script>
+        // ビデオ要素を取得
+        var localVideo = document.getElementById('localVideo');
+        var remoteVideo = document.getElementById('remoteVideo');
+
+        var localStream;
+        var peerConnection;
+        var config = {
+            'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]
+        };
+
+        // ユーザーのメディアを取得して、ビデオ要素に設定
+        navigator.mediaDevices.getUserMedia({video: true, audio: true})
+            .then(function(stream) {
+                localVideo.srcObject = stream;
+                localStream = stream;
+                initializePeerConnection();
+            }).catch(function(error) {
+                console.log('メディアの取得に失敗しました:', error);
+            });
+
+        // WebRTCの接続を初期化
+        function initializePeerConnection() {
+            peerConnection = new RTCPeerConnection(config);
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+            peerConnection.ontrack = function(event) {
+                remoteVideo.srcObject = event.streams[0];
+            };
+        }
+
+        // WebSocketを使ったシグナリング
+        var socket = io();
+
+        socket.on('new_comment', function(data) {
+            if (data.meeting_id === "{{ meeting_id }}") {
+                loadComments([data.comment]);
+            }
+        });
+
+        // 通信を開始するための処理（offer/answer/candidate）
+        socket.on('offer', function(offer) {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+        });
+        socket.on('answer', function(answer) {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        });
+        socket.on('candidate', function(candidate) {
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        });
+
+        // 通信のオファーを作成
+        function createOffer() {
+            peerConnection.createOffer()
+                .then(function(offer) {
+                    return peerConnection.setLocalDescription(offer);
+                })
+                .then(function() {
+                    // オファーをサーバーに送信
+                    socket.emit('offer', peerConnection.localDescription);
+                });
+        }
+        
+        /*
+        var localVideo = document.getElementById('localVideo');
+
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(function(stream) {
+                localVideo.srcObject = stream;
+            })
+            .catch(function(error) {
+                console.log('メディアの取得に失敗しました: ', error);
+            });
+        */
+
+        // コメントの送信フォームのイベントリスナー
+        document.getElementById('comment-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var comment = document.getElementById('comment').value;
+
+            fetch('/comment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'meeting_id={{ meeting_id }}&comment=' + encodeURIComponent(comment)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('comment').value = '';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        function loadComments(newComments) {
+            var commentsOverlay = document.getElementById('comments-overlay');
+            if(newComments==undefined)return ;
+
+            // 新しいコメントを追加
+            newComments.forEach(function(comment, index) {
+                var p = document.createElement('p');
+                p.textContent = comment;
+                p.classList.add('scroll-comment');
+                p.style.top = ((commentsOverlay.children.length + index) * 20) % 200 + 'px';
+                setTimeout(function() {
+                    p.remove();
+                }, 5000);
+                commentsOverlay.appendChild(p);
+            });
+        }
+
+        // 初回のコメント読み込み
+        fetch('/get_comments/{{ meeting_id }}')
+            .then(response => response.json())
+            .then(comments => {
+                loadComments(comments);
+            })
+            .catch(error => console.error('Error:', error));
+
+            loadComments();
+        </script>
+    </body>
+</html>
