@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebRTC SFU Video Chat</title>
+    <style>
+        #localVideo, #remoteVideo {
+            width: 45%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="roomName" placeholder="Enter room name" />
+    <button id="joinRoom">Join Room</button>
+    <button id="leaveRoom">Leave Room</button>
+    <br />
+    <video id="localVideo" autoplay muted></video>
+    <video id="remoteVideo" autoplay></video>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+    <script>
+        const socket = io.connect();
+
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const joinRoomButton = document.getElementById('joinRoom');
+        const leaveRoomButton = document.getElementById('leaveRoom');
+        const roomNameInput = document.getElementById('roomName');
+
+        let localStream;
+        let remoteStream;
+        let pc;
+
+        async function startLocalVideo() {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            localVideo.srcObject = localStream;
+        }
+
+        async function joinRoom() {
+            const room = roomNameInput.value;
+            if (room === "") {
+                alert("Please enter a room name.");
+                return;
+            }
+            socket.emit('create_or_join', { room });
+
+            socket.on('joined', async (data) => {
+                console.log('Joined room:', data.room);
+                pc = createPeerConnection();
+                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+                if (data.sid !== socket.id) {
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+                    socket.emit('message', { room, type: 'offer', sdp: offer });
+                }
+            });
+
+            socket.on('message', async (message) => {
+                if (message.sid === socket.id) return;
+                if (message.type === 'offer') {
+                    await pc.setRemoteDescription(new RTCSessionDescription(message.sdp));
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    socket.emit('message', { room, type: 'answer', sdp: answer });
+                } else if (message.type === 'answer') {
+                    await pc.setRemoteDescription(new RTCSessionDescription(message.sdp));
+                } else if (message.type === 'candidate') {
+                    await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+                }
+            });
+
+            socket.on('left', (data) => {
+                console.log('Left room:', data.room);
+                if (pc) {
+                    pc.close();
+                    pc = null;
+                }
+            });
+        }
+
+        function leaveRoom() {
+            const room = roomNameInput.value;
+            socket.emit('leave', { room });
+        }
+
+        function createPeerConnection() {
+            const pc = new RTCPeerConnection();
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('message', {
+                        room: roomNameInput.value,
+                        type: 'candidate',
+                        candidate: event.candidate,
+                    });
+                }
+            };
+
+            pc.ontrack = (event) => {
+                remoteStream = event.streams[0];
+                remoteVideo.srcObject = remoteStream;
+            };
+
+            return pc;
+        }
+
+        joinRoomButton.addEventListener('click', joinRoom);
+        leaveRoomButton.addEventListener('click', leaveRoom);
+
+        startLocalVideo();
+    </script>
+</body>
+</html>
