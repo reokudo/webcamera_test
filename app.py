@@ -73,4 +73,5 @@ def handle_message(message):
     send(message, broadcast=True)
 
 if __name__ == '__main__':
-    app.run(host = '0.0.0.0',ssl_context=("server.crt","server.key"),debug=True,port=5001, threaded=True)
+    #app.run(host = '0.0.0.0',ssl_context=("server.crt","server.key"),debug=True,port=5001, threaded=True)
+    app.run(host = '0.0.0.0',debug=True,threaded=True)
