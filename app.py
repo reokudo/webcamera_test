@@ -22,7 +22,7 @@ def index():
 def create_meeting():
     meeting_id = str(uuid.uuid4())
     meeting_url = request.host_url + 'meeting/' + meeting_id
-    meetings[meeting_id] = {'url': meeting_url, 'comments': []}
+    meetings[meeting_id] = {'url': meeting_url, 'comments': [], 'participants': 0}
     return jsonify({'meeting_id': meeting_id, 'meeting_url': meeting_url})
 
 # 会議への参加
@@ -54,9 +54,9 @@ def on_join(data):
     meeting_id = data['meeting_id']
     join_room(meeting_id)
     if meeting_id in meetings:
-        meetings[meeting_id]['participants'] = meetings[meeting_id].get('participants', 0) + 1
+        #meetings[meeting_id]['participants'] = meetings[meeting_id].get('participants', 0) + 1
+        meetings[meeting_id]['participants'] += 1
         socketio.emit('joined', {'count': meetings[meeting_id]['participants']}, room=meeting_id)
-
 
 # コメントの送信
 @app.route('/comment', methods=['POST'])
