@@ -88,6 +88,11 @@
             peerConnection.ontrack = function(event) {
                 remoteVideo.srcObject = event.streams[0];
             };
+            peerConnection.onicecandidate = function(event) {
+                if (event.candidate) {
+                    socket.emit('candidate', event.candidate);
+                }
+            };
         }
 
         // WebSocketを使ったシグナリング
@@ -98,18 +103,7 @@
                 loadComments([data.comment]);
             }
         });
-
-        // 通信を開始するための処理（offer/answer/candidate）
-        socket.on('offer', function(offer) {
-            peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-        });
-        socket.on('answer', function(answer) {
-            peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-        });
-        socket.on('candidate', function(candidate) {
-            peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-        });
-
+        
         // 通信のオファーを作成
         function createOffer() {
             peerConnection.createOffer()
@@ -122,17 +116,50 @@
                 });
         }
         
+        // アンサーを作成し送信
+        function createAnswer() {
+            peerConnection.createAnswer()
+                .then(function(answer) {
+                    return peerConnection.setLocalDescription(answer);
+                })
+                .then(function() {
+                    socket.emit('answer', peerConnection.localDescription);
+                });
+        }
+        
+        // 通信を開始するための処理（offer/answer/candidate）
         /*
-        var localVideo = document.getElementById('localVideo');
+        socket.on('offer', function(offer) {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+        });
+        */config
+        
+        // シグナリングプロセスのイベントハンドラー
+        socket.on('offer', function(offer) {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
+                .then(function() {
+                    createAnswer();
+                });
+        });
 
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-            .then(function(stream) {
-                localVideo.srcObject = stream;
-            })
-            .catch(function(error) {
-                console.log('メディアの取得に失敗しました: ', error);
-            });
-        */
+        socket.on('answer', function(answer) {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        });
+        socket.on('candidate', function(candidate) {
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        });
+
+        // ページ読み込み時に他の参加者がいる場合はオファーを作成
+    socket.on('connect', function() {
+        socket.emit('join', { meeting_id: '{{ meeting_id }}' });
+    });
+
+    socket.on('joined', function(data) {
+        if (data.count > 1) {
+            createOffer();
+        }
+    });
+        
 
         // コメントの送信フォームのイベントリスナー
         document.getElementById('comment-form').addEventListener('submit', function(event) {

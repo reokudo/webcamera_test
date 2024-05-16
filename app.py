@@ -1,6 +1,6 @@
 # app.py
 from flask import Flask, render_template, request, jsonify
-from flask_socketio import SocketIO, send
+from flask_socketio import SocketIO, send, join_room
 import uuid
 import qrcode
 import io
@@ -49,6 +49,15 @@ def meeting(meeting_id):
 
     return render_template('meeting.html', meeting_id=meeting_id, qr_img_data=qr_img_data)
 
+@socketio.on('join')
+def on_join(data):
+    meeting_id = data['meeting_id']
+    join_room(meeting_id)
+    if meeting_id in meetings:
+        meetings[meeting_id]['participants'] = meetings[meeting_id].get('participants', 0) + 1
+        socketio.emit('joined', {'count': meetings[meeting_id]['participants']}, room=meeting_id)
+
+
 # コメントの送信
 @app.route('/comment', methods=['POST'])
 def post_comment():
@@ -71,6 +80,19 @@ def get_comments(meeting_id):
 @socketio.on('message')
 def handle_message(message):
     send(message, broadcast=True)
+
+@socketio.on('offer')
+def handle_offer(offer):
+    send({'type': 'offer', 'sdp': offer['sdp']}, broadcast=True)
+
+@socketio.on('answer')
+def handle_answer(answer):
+    send({'type': 'answer', 'sdp': answer['sdp']}, broadcast=True)
+
+@socketio.on('candidate')
+def handle_candidate(candidate):
+    send({'type': 'candidate', 'candidate': candidate['candidate']}, broadcast=True)
+
 
 if __name__ == '__main__':
     #app.run(host = '0.0.0.0',ssl_context=("server.crt","server.key"),debug=True,port=5001, threaded=True)
