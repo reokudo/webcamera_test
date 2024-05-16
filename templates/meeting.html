@@ -132,7 +132,7 @@
         socket.on('offer', function(offer) {
             peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
         });
-        */config
+        */
         
         // シグナリングプロセスのイベントハンドラー
         socket.on('offer', function(offer) {
@@ -150,15 +150,16 @@
         });
 
         // ページ読み込み時に他の参加者がいる場合はオファーを作成
-    socket.on('connect', function() {
-        socket.emit('join', { meeting_id: '{{ meeting_id }}' });
-    });
+        socket.on('connect', function() {
+            console.log("d")
+            socket.emit('join', { meeting_id: '{{ meeting_id }}' });
+        });
 
-    socket.on('joined', function(data) {
-        if (data.count > 1) {
-            createOffer();
-        }
-    });
+        socket.on('joined', function(data) {
+            if (data.count > 1) {
+                createOffer();
+            }
+        });
         
 
         // コメントの送信フォームのイベントリスナー
