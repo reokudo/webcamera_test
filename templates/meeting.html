@@ -1,4 +1,3 @@
-<!-- meeting.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -59,17 +58,14 @@
     </form>
 
     <script>
-        // ビデオ要素を取得
         var localVideo = document.getElementById('localVideo');
         var remoteVideo = document.getElementById('remoteVideo');
-
         var localStream;
         var peerConnection;
         var config = {
             'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]
         };
 
-        // ユーザーのメディアを取得して、ビデオ要素に設定
         navigator.mediaDevices.getUserMedia({video: true, audio: true})
             .then(function(stream) {
                 localVideo.srcObject = stream;
@@ -79,7 +75,6 @@
                 console.log('メディアの取得に失敗しました:', error);
             });
 
-        // WebRTCの接続を初期化
         function initializePeerConnection() {
             peerConnection = new RTCPeerConnection(config);
             localStream.getTracks().forEach(track => {
@@ -95,10 +90,8 @@
             };
         }
 
-        // WebSocketを使ったシグナリング
         var socket = io();
 
-        // ページ読み込み時に他の参加者がいる場合はオファーを作成
         socket.on('connect', function() {
             socket.emit('join', { meeting_id: '{{ meeting_id }}' });
         });
@@ -114,54 +107,38 @@
                 loadComments([data.comment]);
             }
         });
-        
-        // 通信のオファーを作成
-        function createOffer() {
-            peerConnection.createOffer()
-                .then(function(offer) {
-                    return peerConnection.setLocalDescription(offer);
-                })
+
+        socket.on('offer', function(offer) {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
                 .then(function() {
-                    // オファーをサーバーに送信
-                    socket.emit('offer', peerConnection.localDescription);
-                });
-        }
-        
-        // アンサーを作成し送信
-        function createAnswer() {
-            peerConnection.createAnswer()
+                    return peerConnection.createAnswer();
+                })
                 .then(function(answer) {
                     return peerConnection.setLocalDescription(answer);
                 })
                 .then(function() {
                     socket.emit('answer', peerConnection.localDescription);
                 });
-        }
-        
-        // 通信を開始するための処理（offer/answer/candidate）
-        /*
-        socket.on('offer', function(offer) {
-            peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-        });
-        */
-        
-        // シグナリングプロセスのイベントハンドラー
-        socket.on('offer', function(offer) {
-            peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
-                .then(function() {
-                    createAnswer();
-                });
         });
 
         socket.on('answer', function(answer) {
             peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
         });
+
         socket.on('candidate', function(candidate) {
             peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
         });
-        
 
-        // コメントの送信フォームのイベントリスナー
+        function createOffer() {
+            peerConnection.createOffer()
+                .then(function(offer) {
+                    return peerConnection.setLocalDescription(offer);
+                })
+                .then(function() {
+                    socket.emit('offer', peerConnection.localDescription);
+                });
+        }
+
         document.getElementById('comment-form').addEventListener('submit', function(event) {
             event.preventDefault();
             var comment = document.getElementById('comment').value;
@@ -186,7 +163,6 @@
             var commentsOverlay = document.getElementById('comments-overlay');
             if(newComments==undefined)return ;
 
-            // 新しいコメントを追加
             newComments.forEach(function(comment, index) {
                 var p = document.createElement('p');
                 p.textContent = comment;
@@ -199,7 +175,6 @@
             });
         }
 
-        // 初回のコメント読み込み
         fetch('/get_comments/{{ meeting_id }}')
             .then(response => response.json())
             .then(comments => {
@@ -207,7 +182,7 @@
             })
             .catch(error => console.error('Error:', error));
 
-            loadComments();
-        </script>
-    </body>
+        loadComments();
+    </script>
+</body>
 </html>
