@@ -133,6 +133,17 @@
             peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
         });
         */
+
+        // ページ読み込み時に他の参加者がいる場合はオファーを作成
+        socket.on('connect', function() {
+            socket.emit('join', { meeting_id: '{{ meeting_id }}' });
+        });
+
+        socket.on('joined', function(data) {
+            if (data.count > 1) {
+                createOffer();
+            }
+        });
         
         // シグナリングプロセスのイベントハンドラー
         socket.on('offer', function(offer) {
@@ -147,18 +158,6 @@
         });
         socket.on('candidate', function(candidate) {
             peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-        });
-
-        // ページ読み込み時に他の参加者がいる場合はオファーを作成
-        socket.on('connect', function() {
-            console.log("d")
-            socket.emit('join', { meeting_id: '{{ meeting_id }}' });
-        });
-
-        socket.on('joined', function(data) {
-            if (data.count > 1) {
-                createOffer();
-            }
         });
         
 
