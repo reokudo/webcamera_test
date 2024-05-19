@@ -1,32 +1,16 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>オンライン会議システム</title>
+    <title>Video Chat</title>
 </head>
 <body>
-    <h1>オンライン会議システムへようこそ</h1>
-
-    <button id="create-meeting">新しい会議を作成</button>
-
-    <h2>会議に参加する</h2>
-    <form action="/join_meeting" method="post">
-        <label for="meeting-id">会議ID：</label>
-        <input type="text" id="meeting-id" name="meeting_id" required>
-        <button type="submit">参加</button>
+    <h1>Welcome to Video Chat</h1>
+    <form action="/create_meeting" method="post">
+        <button type="submit">Create Meeting</button>
     </form>
-
-    <script>
-        document.getElementById('create-meeting').addEventListener('click', function() {
-            fetch('/create_meeting', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.meeting_id) {
-                        window.location.href = '/meeting/' + data.meeting_id;
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        });
-    </script>
+    <form action="/join_meeting" method="post">
+        <input type="text" name="meeting_id" placeholder="Enter Meeting ID">
+        <button type="submit">Join Meeting</button>
+    </form>
 </body>
 </html>
