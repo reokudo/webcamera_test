@@ -15,18 +15,23 @@
     </form>
     <script>
         document.getElementById('createMeetingBtn').addEventListener('click', () => {
-            fetch('/create_meeting', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.meeting_id && data.user_id) {
-                        window.location.href = `/meeting/${data.meeting_id}/${data.user_id}`;
-                    } else {
-                        console.error('Error creating meeting:', data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
+            fetch('/create_meeting', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.meeting_id && data.user_id) {
+                    window.location.href = `/meeting/${data.meeting_id}/${data.user_id}`;
+                } else {
+                    console.error('Error creating meeting:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
     </script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
