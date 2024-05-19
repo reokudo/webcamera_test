@@ -1,5 +1,5 @@
 flask
+flask-cors
 flask-socketio
 eventlet
-qrcode
 gunicorn==19.9.0
