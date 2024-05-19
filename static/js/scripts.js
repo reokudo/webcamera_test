@@ -1,16 +1,17 @@
-const constraints = {
-    video: true,
-    audio: true
-};
+async function setupVideoChat(meetingId, userId) {
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideos = document.getElementById('remoteVideos');
 
-navigator.mediaDevices.getUserMedia(constraints)
-    .then((stream) => {
-        const videoElement = document.createElement('video');
-        videoElement.srcObject = stream;
-        videoElement.autoplay = true;
-        document.getElementById('videos').appendChild(videoElement);
-        // WebRTC logic to connect with other participants
-    })
-    .catch((error) => {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = stream;
+        
+        // Setup WebRTC connection here
+        // Add your SFU connection and peer connection setup here
+
+    } catch (error) {
         console.error('Error accessing media devices.', error);
-    });
+    }
+}
+
+// Additional WebRTC and SFU setup code will go here
