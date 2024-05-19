@@ -50,10 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 video.playsInline = true;
                 videosContainer.appendChild(video);
 
-                // For testing purpose, adding a test video element
+                // For testing purpose, adding a console log to check if stream is obtained
+                console.log('Stream obtained:', stream);
+
+                // Display a test video element with the stream
                 const testVideo = document.createElement('video');
                 testVideo.srcObject = stream;
-                testVideo.id = 'test_video';
                 testVideo.autoplay = true;
                 testVideo.playsInline = true;
                 videosContainer.appendChild(testVideo);
