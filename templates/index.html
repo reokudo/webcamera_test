@@ -2,14 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <title>Video Chat</title>
 </head>
 <body>
-    <h1>Welcome to the Video Chat App</h1>
-    <button onclick="window.location.href='/create'">Create a new meeting</button>
-    <br><br>
-    <form action="/meeting/" method="get">
-        <input type="text" name="meeting_id" placeholder="Enter meeting ID" required>
+    <h1>Welcome to the Video Chat System</h1>
+    <form action="{{ url_for('create_meeting') }}" method="post">
+        <button type="submit">Create New Meeting</button>
+    </form>
+    <form action="{{ url_for('meeting') }}" method="get">
+        <input type="text" name="meeting_id" placeholder="Enter Meeting ID">
         <button type="submit">Join Meeting</button>
     </form>
 </body>
