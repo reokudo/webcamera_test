@@ -107,4 +107,4 @@ def handle_ice_candidate(data):
         print(f"Error in ice_candidate event: {e}")
 
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", debug=True, use_reloader=False, workers=1)
+    socketio.run(app, host="0.0.0.0", debug=True, threaded=True)

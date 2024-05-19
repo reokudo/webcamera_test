@@ -2,4 +2,3 @@ flask
 flask-cors
 flask-socketio
 eventlet
-gunicorn==19.9.0
