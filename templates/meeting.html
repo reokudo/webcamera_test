@@ -1,16 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Meeting</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <h1>Meeting ID: {{ meeting_id }}</h1>
-    <video id="localVideo" autoplay playsinline></video>
+    <video id="localVideo" autoplay muted></video>
     <div id="remoteVideos"></div>
-    <script src="{{ url_for('static', filename='js/webrtc.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
     <script>
         const meetingId = "{{ meeting_id }}";
-        startWebRTC(meetingId);
+        const userId = "{{ user_id }}";
+        setupVideoChat(meetingId, userId);
     </script>
 </body>
 </html>
