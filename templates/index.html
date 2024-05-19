@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Video Chat</title>
+    <title>ビデオチャットシステム</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Welcome to Video Chat</h1>
-    <form action="/create_meeting" method="post">
-        <button type="submit">Create Meeting</button>
+    <h1>ビデオチャットシステム</h1>
+    <form action="{{ url_for('create_meeting') }}" method="post">
+        <button type="submit">新しい会議を作成</button>
     </form>
-    <form action="/join_meeting" method="post">
-        <input type="text" name="meeting_id" placeholder="Enter Meeting ID">
-        <button type="submit">Join Meeting</button>
+    <br>
+    <form action="{{ url_for('join_meeting') }}" method="post">
+        <input type="text" name="meeting_id" placeholder="会議IDを入力">
+        <button type="submit">会議に参加</button>
     </form>
 </body>
 </html>
