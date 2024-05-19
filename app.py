@@ -38,7 +38,7 @@ def join_meeting():
     if meeting_id in meetings:
         user_id = generate_id()
         meetings[meeting_id]['participants'].append(user_id)
-        return redirect(url_for('meeting', meeting_id=meeting_id, user_id=user_id))
+        return jsonify({'meeting_id': meeting_id, 'user_id': user_id})
     else:
         return "Meeting ID not found", 404
 

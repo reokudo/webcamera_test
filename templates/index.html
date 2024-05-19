@@ -9,7 +9,7 @@
 <body>
     <h1>Welcome to Video Chat</h1>
     <button id="createMeetingBtn">Create Meeting</button>
-    <form id="joinMeetingForm" method="POST" action="/join_meeting">
+    <form id="joinMeetingForm">
         <input type="text" name="meeting_id" placeholder="Enter Meeting ID" required>
         <button type="submit">Join Meeting</button>
     </form>
@@ -33,7 +33,26 @@
                 console.error('Error:', error);
             });
         });
+
+        document.getElementById('joinMeetingForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            fetch('/join_meeting', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.meeting_id && data.user_id) {
+                    window.location.href = `/meeting/${data.meeting_id}/${data.user_id}`;
+                } else {
+                    console.error('Error joining meeting:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
     </script>
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 </html>
