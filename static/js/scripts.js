@@ -117,3 +117,5 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('leaveMeetingBtn').addEventListener('click', () => {
         socket.emit('leave', { room: meetingId, user_id: userId });
         window.location.href = '/';
+    });
+});
