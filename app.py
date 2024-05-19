@@ -6,7 +6,7 @@ import string
 
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 meetings = {}
 
@@ -61,35 +61,50 @@ def leave_meeting():
 
 @socketio.on('join')
 def handle_join(data):
-    room = data['room']
-    user_id = data['user_id']
-    join_room(room)
-    emit('user_joined', {'user_id': user_id}, room=room)
+    try:
+        room = data['room']
+        user_id = data['user_id']
+        join_room(room)
+        emit('user_joined', {'user_id': user_id}, room=room)
+    except Exception as e:
+        print(f"Error in join event: {e}")
 
 @socketio.on('leave')
 def handle_leave(data):
-    room = data['room']
-    user_id = data['user_id']
-    leave_room(room)
-    emit('user_left', {'user_id': user_id}, room=room)
+    try:
+        room = data['room']
+        user_id = data['user_id']
+        leave_room(room)
+        emit('user_left', {'user_id': user_id}, room=room)
+    except Exception as e:
+        print(f"Error in leave event: {e}")
 
 @socketio.on('offer')
 def handle_offer(data):
-    offer = data['offer']
-    room = data['room']
-    emit('offer', offer, room=room, include_self=False)
+    try:
+        offer = data['offer']
+        room = data['room']
+        emit('offer', offer, room=room, include_self=False)
+    except Exception as e:
+        print(f"Error in offer event: {e}")
 
 @socketio.on('answer')
 def handle_answer(data):
-    answer = data['answer']
-    room = data['room']
-    emit('answer', answer, room=room)
+    try:
+        answer = data['answer']
+        room = data['room']
+        emit('answer', answer, room=room)
+    except Exception as e:
+        print(f"Error in answer event: {e}")
 
 @socketio.on('ice_candidate')
 def handle_ice_candidate(data):
-    candidate = data['candidate']
-    room = data['room']
-    emit('ice_candidate', candidate, room=room)
+    try:
+        candidate = data['candidate']
+        room = data['room']
+        emit('ice_candidate', candidate, room=room)
+    except Exception as e:
+        print(f"Error in ice_candidate event: {e}")
 
 if __name__ == '__main__':
     socketio.run(app, host="0.0.0.0", debug=True, threaded=True)
