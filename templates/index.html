@@ -2,26 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Chat</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <h1>Welcome to Video Chat</h1>
-    <button onclick="createMeeting()">Create New Meeting</button>
-    <form action="/join_meeting" method="post">
-        <input type="text" name="meeting_id" placeholder="Enter Meeting ID">
+    <button id="createMeetingBtn">Create Meeting</button>
+    <form id="joinMeetingForm" method="POST" action="/join_meeting">
+        <input type="text" name="meeting_id" placeholder="Enter Meeting ID" required>
         <button type="submit">Join Meeting</button>
     </form>
-    <script>
-        function createMeeting() {
-            fetch('/create_meeting', {
-                method: 'POST'
-            }).then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;
-                }
-            });
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 </html>

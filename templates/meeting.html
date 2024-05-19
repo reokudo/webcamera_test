@@ -2,18 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meeting</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <h1>Meeting ID: {{ meeting_id }}</h1>
-    <video id="localVideo" autoplay muted></video>
-    <div id="remoteVideos"></div>
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <div id="videos"></div>
+    <button id="leaveMeetingBtn">Leave Meeting</button>
     <script>
-        const meetingId = "{{ meeting_id }}";
         const userId = "{{ user_id }}";
-        setupVideoChat(meetingId, userId);
+        const meetingId = "{{ meeting_id }}";
     </script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 </html>
