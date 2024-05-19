@@ -2,18 +2,14 @@ document.getElementById('createMeetingBtn').addEventListener('click', () => {
     fetch('/create_meeting', { method: 'POST' })
         .then(response => response.json())
         .then(data => {
-            const { meeting_id, user_id } = data;
-            window.location.href = `/meeting/${meeting_id}/${user_id}`;
-        });
-});
-
-document.getElementById('leaveMeetingBtn').addEventListener('click', () => {
-    const formData = new FormData();
-    formData.append('meeting_id', meetingId);
-    formData.append('user_id', userId);
-    fetch('/leave_meeting', { method: 'POST', body: formData })
-        .then(() => {
-            window.location.href = '/';
+            if (data.meeting_id && data.user_id) {
+                window.location.href = `/meeting/${data.meeting_id}/${data.user_id}`;
+            } else {
+                console.error('Error creating meeting:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
 });
 
