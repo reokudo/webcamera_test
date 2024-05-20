@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(stream => {
             localStream = stream;
-            addVideoStream(localStream, userId);
+            addVideoStream(localStream, userId, true); // 自分の映像にはmutedを追加
 
             socket.emit('join', { room: meetingId, user_id: userId });
 
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error accessing media devices:', error);
         });
 
-    function addVideoStream(stream, userId) {
+    function addVideoStream(stream, userId, muted = false) {
         console.log(`Adding video stream for user ${userId}`);
         const existingVideo = document.getElementById(`video_${userId}`);
         if (existingVideo) {
@@ -100,6 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
         video.id = `video_${userId}`;
         video.autoplay = true;
         video.playsInline = true;
+        if (muted) {
+            video.muted = true;
+        }
         videosContainer.appendChild(video);
     }
 
