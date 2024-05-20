@@ -4,15 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const peers = {};
     let localStream;
 
+    // Get local media stream
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(stream => {
             localStream = stream;
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            video.id = `video_${userId}`;
-            video.autoplay = true;
-            video.playsInline = true;
-            videosContainer.appendChild(video);
+            addVideoStream(localStream, userId);
 
             socket.emit('join', { room: meetingId, user_id: userId });
 
@@ -23,10 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             socket.on('user_left', (data) => {
-                const video = document.getElementById(`video_${data.user_id}`);
-                if (video) {
-                    video.remove();
-                }
+                removeVideoStream(data.user_id);
                 if (peers[data.user_id]) {
                     peers[data.user_id].close();
                     delete peers[data.user_id];
@@ -67,6 +60,22 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error accessing media devices:', error);
         });
 
+    function addVideoStream(stream, userId) {
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.id = `video_${userId}`;
+        video.autoplay = true;
+        video.playsInline = true;
+        videosContainer.appendChild(video);
+    }
+
+    function removeVideoStream(userId) {
+        const video = document.getElementById(`video_${userId}`);
+        if (video) {
+            video.remove();
+        }
+    }
+
     function createPeer(targetUserId, initiator) {
         const peer = new RTCPeerConnection({
             iceServers: [
@@ -86,12 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         peer.ontrack = (event) => {
-            const video = document.createElement('video');
-            video.srcObject = event.streams[0];
-            video.id = `video_${targetUserId}`;
-            video.autoplay = true;
-            video.playsInline = true;
-            videosContainer.appendChild(video);
+            addVideoStream(event.streams[0], targetUserId);
         };
 
         localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
