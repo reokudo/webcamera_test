@@ -90,22 +90,22 @@ def handle_leave(data):
 @socketio.on('offer')
 def handle_offer(data):
     try:
-        room = data.get('room')
-        offer = data.get('offer')
-        source = data.get('source')
+        room = data['room']
+        offer = data['offer']
+        source = data['source']
         print(f"Received offer from {source} in room {room}")  # デバッグ用
-        emit('offer', {'offer': offer, 'source': source, 'target': data.get('target')}, room=room, include_self=False)
+        emit('offer', {'offer': offer, 'source': source, 'target': data['target']}, room=room)
     except Exception as e:
         print(f"Error in offer event: {e}")
 
 @socketio.on('answer')
 def handle_answer(data):
     try:
-        room = data.get('room')
-        answer = data.get('answer')
-        source = data.get('source')
+        room = data['room']
+        answer = data['answer']
+        source = data['source']
         print(f"Received answer from {source} in room {room}")  # デバッグ用
-        emit('answer', {'answer': answer, 'source': source}, room=room)
+        emit('answer', {'answer': answer, 'source': source, 'target': data['target']}, room=room)
     except Exception as e:
         print(f"Error in answer event: {e}")
 

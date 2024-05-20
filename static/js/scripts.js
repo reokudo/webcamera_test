@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const videosContainer = document.getElementById('videos');
     const peers = {};
+    const iceCandidatesQueue = {};
     let localStream;
 
     // Get local media stream
@@ -42,6 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         source: userId,
                         answer: peer.localDescription
                     });
+
+                    // Add any queued ICE candidates
+                    if (iceCandidatesQueue[data.source]) {
+                        for (const candidate of iceCandidatesQueue[data.source]) {
+                            await peer.addIceCandidate(new RTCIceCandidate(candidate));
+                        }
+                        delete iceCandidatesQueue[data.source];
+                    }
                 }
             });
 
@@ -50,6 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.target === userId) {
                     const peer = peers[data.source];
                     await peer.setRemoteDescription(new RTCSessionDescription(data.answer));
+
+                    // Add any queued ICE candidates
+                    if (iceCandidatesQueue[data.source]) {
+                        for (const candidate of iceCandidatesQueue[data.source]) {
+                            await peer.addIceCandidate(new RTCIceCandidate(candidate));
+                        }
+                        delete iceCandidatesQueue[data.source];
+                    }
                 }
             });
 
@@ -57,7 +74,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`Received ICE candidate from ${data.source}`);  // デバッグ用
                 if (data.target === userId) {
                     const peer = peers[data.source];
-                    await peer.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    if (peer.remoteDescription) {
+                        await peer.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    } else {
+                        if (!iceCandidatesQueue[data.source]) {
+                            iceCandidatesQueue[data.source] = [];
+                        }
+                        iceCandidatesQueue[data.source].push(data.candidate);
+                    }
                 }
             });
         })
