@@ -14,14 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
             socket.emit('join', { room: meetingId, user_id: userId });
 
             socket.on('user_joined', (data) => {
-                console.log(`User joined: ${data.user_id}`);  // デバッグ用
+                console.log(`User joined: ${data.user_id}`);
                 if (data.user_id !== userId) {
                     callUser(data.user_id);
                 }
             });
 
             socket.on('user_left', (data) => {
-                console.log(`User left: ${data.user_id}`);  // デバッグ用
+                console.log(`User left: ${data.user_id}`);
                 removeVideoStream(data.user_id);
                 if (peers[data.user_id]) {
                     peers[data.user_id].close();
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             socket.on('offer', async (data) => {
-                console.log(`Received offer from ${data.source}`);  // デバッグ用
+                console.log(`Received offer from ${data.source}`);
                 if (data.target === userId) {
                     const peer = createPeer(data.source, false);
                     peers[data.source] = peer;
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             socket.on('answer', async (data) => {
-                console.log(`Received answer from ${data.source}`);  // デバッグ用
+                console.log(`Received answer from ${data.source}`);
                 if (data.target === userId) {
                     const peer = peers[data.source];
                     await peer.setRemoteDescription(new RTCSessionDescription(data.answer));
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             socket.on('ice_candidate', async (data) => {
-                console.log(`Received ICE candidate from ${data.source}`);  // デバッグ用
+                console.log(`Received ICE candidate from ${data.source}`);
                 if (data.target === userId) {
                     const peer = peers[data.source];
                     if (peer.remoteDescription) {
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         peer.ontrack = (event) => {
-            console.log(`Adding track from ${targetUserId}`);  // デバッグ用
+            console.log(`Adding track from ${targetUserId}`);
             addVideoStream(event.streams[0], targetUserId);
         };
 
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function callUser(targetUserId) {
-        console.log(`Calling user: ${targetUserId}`);  // デバッグ用
+        console.log(`Calling user: ${targetUserId}`);
         const peer = createPeer(targetUserId, true);
         peers[targetUserId] = peer;
     }
