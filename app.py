@@ -107,4 +107,18 @@ def handle_answer(data):
         print(f"Received answer from {source} in room {room}")  # デバッグ用
         emit('answer', {'answer': answer, 'source': source}, room=room)
     except Exception as e:
-        print(f"
+        print(f"Error in answer event: {e}")
+
+@socketio.on('ice_candidate')
+def handle_ice_candidate(data):
+    try:
+        room = data.get('room')
+        candidate = data.get('candidate')
+        source = data.get('source')
+        print(f"Received ICE candidate from {source} in room {room}")  # デバッグ用
+        emit('ice_candidate', {'candidate': candidate, 'source': source, 'target': data.get('target')}, room=room)
+    except Exception as e:
+        print(f"Error in ice_candidate event: {e}")
+
+if __name__ == '__main__':
+    socketio.run(app, host='0.0.0.0', port=8000)
