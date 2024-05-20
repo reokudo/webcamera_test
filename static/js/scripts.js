@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     function addVideoStream(stream, userId, muted = false) {
-        console.log(`Adding video stream for user ${userId}`);
+        console.log(`Adding video stream for user ${userId}, muted=${muted}`);
         const existingVideo = document.getElementById(`video_${userId}`);
         if (existingVideo) {
             existingVideo.remove();
