@@ -90,6 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     function addVideoStream(stream, userId) {
+        console.log(`Adding video stream for user ${userId}`);
+        console.log('Stream:', stream);
+
         removeVideoStream(userId); // 追加する前に既存のビデオを削除する
         const video = document.createElement('video');
         video.srcObject = stream;
@@ -105,12 +108,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function removeVideoStream(userId) {
         const video = document.getElementById(`video_${userId}`);
         if (video) {
+            console.log(`Removing video stream for user ${userId}`);
             video.srcObject.getTracks().forEach(track => track.stop()); // トラックを停止
             video.remove();
         }
     }
 
     function createPeer(targetUserId, initiator) {
+        console.log(`Creating peer for ${targetUserId} as initiator: ${initiator}`);
         const peer = new RTCPeerConnection({
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' }
@@ -119,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         peer.onicecandidate = (event) => {
             if (event.candidate) {
+                console.log(`Sending ICE candidate to ${targetUserId}`);
                 socket.emit('ice_candidate', {
                     room: meetingId,
                     target: targetUserId,
@@ -130,15 +136,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         peer.ontrack = (event) => {
             console.log(`Adding track from ${targetUserId}`);
+            console.log('Event streams:', event.streams);
             addVideoStream(event.streams[0], targetUserId);
         };
 
-        localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
+        localStream.getTracks().forEach(track => {
+            console.log(`Adding track to peer for ${targetUserId}`);
+            peer.addTrack(track, localStream);
+        });
 
         if (initiator) {
             peer.createOffer()
-                .then(offer => peer.setLocalDescription(offer))
+                .then(offer => {
+                    console.log('Created offer:', offer);
+                    return peer.setLocalDescription(offer);
+                })
                 .then(() => {
+                    console.log('Sending offer to', targetUserId);
                     socket.emit('offer', {
                         room: meetingId,
                         target: targetUserId,
