@@ -70,6 +70,7 @@ def handle_join(data):
     try:
         room = data['room']
         user_id = data['user_id']
+        print(f"User {user_id} is joining room {room}")  # デバッグ用
         join_room(room)
         emit('user_joined', {'user_id': user_id}, room=room)
     except Exception as e:
@@ -80,6 +81,7 @@ def handle_leave(data):
     try:
         room = data['room']
         user_id = data['user_id']
+        print(f"User {user_id} is leaving room {room}")  # デバッグ用
         leave_room(room)
         emit('user_left', {'user_id': user_id}, room=room)
     except Exception as e:
@@ -91,6 +93,7 @@ def handle_offer(data):
         room = data.get('room')
         offer = data.get('offer')
         source = data.get('source')
+        print(f"Received offer from {source} in room {room}")  # デバッグ用
         emit('offer', {'offer': offer, 'source': source, 'target': data.get('target')}, room=room, include_self=False)
     except Exception as e:
         print(f"Error in offer event: {e}")
@@ -100,18 +103,8 @@ def handle_answer(data):
     try:
         room = data.get('room')
         answer = data.get('answer')
-        emit('answer', {'answer': answer, 'source': data.get('source')}, room=room)
+        source = data.get('source')
+        print(f"Received answer from {source} in room {room}")  # デバッグ用
+        emit('answer', {'answer': answer, 'source': source}, room=room)
     except Exception as e:
-        print(f"Error in answer event: {e}")
-
-@socketio.on('ice_candidate')
-def handle_ice_candidate(data):
-    try:
-        room = data.get('room')
-        candidate = data.get('candidate')
-        emit('ice_candidate', {'candidate': candidate, 'source': data.get('source')}, room=room)
-    except Exception as e:
-        print(f"Error in ice_candidate event: {e}")
-
-if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", debug=True, use_reloader=False)
+        print(f"
