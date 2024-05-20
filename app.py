@@ -40,7 +40,7 @@ def join_meeting():
         meetings[meeting_id]['participants'].append(user_id)
         return jsonify({'meeting_id': meeting_id, 'user_id': user_id})
     else:
-        return "Meeting ID not found", 404
+        return jsonify({'error': 'Meeting ID not found'}), 404
 
 @app.route('/meeting/<meeting_id>/<user_id>')
 def meeting(meeting_id, user_id):
