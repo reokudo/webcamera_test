@@ -91,6 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addVideoStream(stream, userId) {
         console.log(`Adding video stream for user ${userId}`);
+        const existingVideo = document.getElementById(`video_${userId}`);
+        if (existingVideo) {
+            existingVideo.remove();
+        }
         const video = document.createElement('video');
         video.srcObject = stream;
         video.id = `video_${userId}`;

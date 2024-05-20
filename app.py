@@ -1,7 +1,7 @@
 import eventlet
 eventlet.monkey_patch()
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from flask_socketio import SocketIO, join_room, leave_room, emit
 import random
@@ -38,14 +38,14 @@ def create_meeting():
 @app.route('/join_meeting', methods=['POST'])
 def join_meeting():
     meeting_id = request.form.get('meeting_id')
-    print(f"Received join request for meeting_id: {meeting_id}")  # デバッグ用
+    print(f"Received join request for meeting_id: {meeting_id}")
     if meeting_id in meetings:
         user_id = generate_id()
         meetings[meeting_id]['participants'].append(user_id)
-        print(f"User {user_id} joined meeting {meeting_id}")  # デバッグ用
+        print(f"User {user_id} joined meeting {meeting_id}")
         return jsonify({'meeting_id': meeting_id, 'user_id': user_id})
     else:
-        print(f"Meeting ID {meeting_id} not found")  # デバッグ用
+        print(f"Meeting ID {meeting_id} not found")
         return jsonify({'error': 'Meeting ID not found'}), 404
 
 @app.route('/meeting/<meeting_id>/<user_id>')
@@ -60,7 +60,8 @@ def leave_meeting():
     meeting_id = request.form.get('meeting_id')
     user_id = request.form.get('user_id')
     if meeting_id in meetings:
-        meetings[meeting_id]['participants'].remove(user_id)
+        if user_id in meetings[meeting_id]['participants']:
+            meetings[meeting_id]['participants'].remove(user_id)
         if not meetings[meeting_id]['participants']:
             del meetings[meeting_id]
     return '', 204
@@ -70,7 +71,7 @@ def handle_join(data):
     try:
         room = data['room']
         user_id = data['user_id']
-        print(f"User {user_id} is joining room {room}")  # デバッグ用
+        print(f"User {user_id} is joining room {room}")
         join_room(room)
         emit('user_joined', {'user_id': user_id}, room=room)
     except Exception as e:
@@ -81,7 +82,7 @@ def handle_leave(data):
     try:
         room = data['room']
         user_id = data['user_id']
-        print(f"User {user_id} is leaving room {room}")  # デバッグ用
+        print(f"User {user_id} is leaving room {room}")
         leave_room(room)
         emit('user_left', {'user_id': user_id}, room=room)
     except Exception as e:
@@ -93,7 +94,7 @@ def handle_offer(data):
         room = data['room']
         offer = data['offer']
         source = data['source']
-        print(f"Received offer from {source} in room {room}")  # デバッグ用
+        print(f"Received offer from {source} in room {room}")
         emit('offer', {'offer': offer, 'source': source, 'target': data['target']}, room=room)
     except Exception as e:
         print(f"Error in offer event: {e}")
@@ -104,7 +105,7 @@ def handle_answer(data):
         room = data['room']
         answer = data['answer']
         source = data['source']
-        print(f"Received answer from {source} in room {room}")  # デバッグ用
+        print(f"Received answer from {source} in room {room}")
         emit('answer', {'answer': answer, 'source': source, 'target': data['target']}, room=room)
     except Exception as e:
         print(f"Error in answer event: {e}")
@@ -115,7 +116,7 @@ def handle_ice_candidate(data):
         room = data.get('room')
         candidate = data.get('candidate')
         source = data.get('source')
-        print(f"Received ICE candidate from {source} in room {room}")  # デバッグ用
+        print(f"Received ICE candidate from {source} in room {room}")
         emit('ice_candidate', {'candidate': candidate, 'source': source, 'target': data.get('target')}, room=room)
     except Exception as e:
         print(f"Error in ice_candidate event: {e}")
