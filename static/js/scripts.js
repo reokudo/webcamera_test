@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     function addVideoStream(stream, userId) {
+        removeVideoStream(userId); // 追加する前に既存のビデオを削除する
         const video = document.createElement('video');
         video.srcObject = stream;
         video.id = `video_${userId}`;
@@ -101,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function removeVideoStream(userId) {
         const video = document.getElementById(`video_${userId}`);
         if (video) {
+            video.srcObject.getTracks().forEach(track => track.stop()); // トラックを停止
             video.remove();
         }
     }
