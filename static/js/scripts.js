@@ -97,6 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
         video.autoplay = true;
         video.playsInline = true;
         videosContainer.appendChild(video);
+        video.onloadedmetadata = () => {
+            video.play();
+        };
     }
 
     function removeVideoStream(userId) {
