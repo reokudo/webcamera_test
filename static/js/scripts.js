@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const answer = await peer.createAnswer();
                     await peer.setLocalDescription(answer);
                     socket.emit('answer', {
+                        room: meetingId,
                         target: data.source,
                         source: userId,
                         answer: peer.localDescription
@@ -76,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         peer.onicecandidate = (event) => {
             if (event.candidate) {
                 socket.emit('ice_candidate', {
+                    room: meetingId,
                     target: targetUserId,
                     source: userId,
                     candidate: event.candidate
@@ -99,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(offer => peer.setLocalDescription(offer))
                 .then(() => {
                     socket.emit('offer', {
+                        room: meetingId,
                         target: targetUserId,
                         source: userId,
                         offer: peer.localDescription

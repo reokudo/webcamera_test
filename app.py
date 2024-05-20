@@ -85,27 +85,28 @@ def handle_leave(data):
 @socketio.on('offer')
 def handle_offer(data):
     try:
-        offer = data['offer']
-        room = data['room']
-        emit('offer', offer, room=room, include_self=False)
+        room = data.get('room')
+        offer = data.get('offer')
+        source = data.get('source')
+        emit('offer', {'offer': offer, 'source': source, 'target': data.get('target')}, room=room, include_self=False)
     except Exception as e:
         print(f"Error in offer event: {e}")
 
 @socketio.on('answer')
 def handle_answer(data):
     try:
-        answer = data['answer']
-        room = data['room']
-        emit('answer', answer, room=room)
+        room = data.get('room')
+        answer = data.get('answer')
+        emit('answer', {'answer': answer, 'source': data.get('source')}, room=room)
     except Exception as e:
         print(f"Error in answer event: {e}")
 
 @socketio.on('ice_candidate')
 def handle_ice_candidate(data):
     try:
-        candidate = data['candidate']
-        room = data['room']
-        emit('ice_candidate', candidate, room=room)
+        room = data.get('room')
+        candidate = data.get('candidate')
+        emit('ice_candidate', {'candidate': candidate, 'source': data.get('source')}, room=room)
     except Exception as e:
         print(f"Error in ice_candidate event: {e}")
 
