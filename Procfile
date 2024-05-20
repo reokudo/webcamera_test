@@ -1,1 +1,1 @@
-web: gunicorn app:app --log-file=- --processes 4 --threads 2
+web: gunicorn -k eventlet -w 1 -b 0.0.0.0:8000 app:app --log-file=-
