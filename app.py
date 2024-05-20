@@ -35,11 +35,14 @@ def create_meeting():
 @app.route('/join_meeting', methods=['POST'])
 def join_meeting():
     meeting_id = request.form.get('meeting_id')
+    print(f"Received join request for meeting_id: {meeting_id}")  # デバッグ用
     if meeting_id in meetings:
         user_id = generate_id()
         meetings[meeting_id]['participants'].append(user_id)
+        print(f"User {user_id} joined meeting {meeting_id}")  # デバッグ用
         return jsonify({'meeting_id': meeting_id, 'user_id': user_id})
     else:
+        print(f"Meeting ID {meeting_id} not found")  # デバッグ用
         return jsonify({'error': 'Meeting ID not found'}), 404
 
 @app.route('/meeting/<meeting_id>/<user_id>')

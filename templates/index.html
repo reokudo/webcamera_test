@@ -10,7 +10,7 @@
     <h1>Welcome to Video Chat</h1>
     <button id="createMeetingBtn">Create Meeting</button>
     <form id="joinMeetingForm">
-        <input type="text" name="meeting_id" placeholder="Enter Meeting ID" required>
+        <input type="text" name="meeting_id" id="meeting_id" placeholder="Enter Meeting ID" required>
         <button type="submit">Join Meeting</button>
     </form>
     <script>
@@ -36,7 +36,9 @@
 
         document.getElementById('joinMeetingForm').addEventListener('submit', (event) => {
             event.preventDefault();
-            const formData = new FormData(event.target);
+            const meeting_id = document.getElementById('meeting_id').value;
+            const formData = new FormData();
+            formData.append('meeting_id', meeting_id);
             fetch('/join_meeting', {
                 method: 'POST',
                 body: formData
