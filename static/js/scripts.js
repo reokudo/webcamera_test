@@ -89,30 +89,42 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error accessing media devices:', error);
         });
 
-    function addVideoStream(stream, userId, muted = false) {
-        console.log(`Adding video stream for user ${userId}, muted=${muted}`);
-        const existingVideo = document.getElementById(`video_${userId}`);
-        if (existingVideo) {
-            existingVideo.remove();
+        function addVideoStream(stream, userId, muted = false) {
+            console.log(`Adding video stream for user ${userId}, muted=${muted}`);
+            const existingVideoContainer = document.getElementById(`video_container_${userId}`);
+            if (existingVideoContainer) {
+                existingVideoContainer.remove();
+            }
+    
+            const videoContainer = document.createElement('div');
+            videoContainer.id = `video_container_${userId}`;
+            videoContainer.classList.add('video-container');
+    
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.id = `video_${userId}`;
+            video.autoplay = true;
+            video.playsInline = true;
+            if (muted) {
+                video.muted = true;
+            }
+    
+            const label = document.createElement('div');
+            label.classList.add('video-label');
+            label.innerText = userId;
+    
+            videoContainer.appendChild(video);
+            videoContainer.appendChild(label);
+            videosContainer.appendChild(videoContainer);
         }
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.id = `video_${userId}`;
-        video.autoplay = true;
-        video.playsInline = true;
-        if (muted) {
-            video.muted = true;
+    
+        function removeVideoStream(userId) {
+            console.log(`Removing video stream for user ${userId}`);
+            const videoContainer = document.getElementById(`video_container_${userId}`);
+            if (videoContainer) {
+                videoContainer.remove();
+            }
         }
-        videosContainer.appendChild(video);
-    }
-
-    function removeVideoStream(userId) {
-        console.log(`Removing video stream for user ${userId}`);
-        const video = document.getElementById(`video_${userId}`);
-        if (video) {
-            video.remove();
-        }
-    }
 
     function createPeer(targetUserId, initiator) {
         console.log(`Creating peer for ${targetUserId} as initiator: ${initiator}`);
