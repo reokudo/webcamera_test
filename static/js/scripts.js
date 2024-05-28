@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         username.classList.add('username');
         username.innerText = userId;
         
-        videosContainer.appendChild(video);
+        videoContainer.appendChild(video);
         videoContainer.appendChild(username);
 
         videosContainer.appendChild(videoContainer);
