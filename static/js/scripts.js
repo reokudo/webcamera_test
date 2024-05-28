@@ -119,9 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function removeVideoStream(userId) {
         console.log(`Removing video stream for user ${userId}`);
-        const video = document.getElementById(`video_${userId}`);
-        if (video) {
-            video.remove();
+        const videoContainer = document.querySelector(`.video-container video#video_${userId}`).parentElement;
+        if (videoContainer) {
+            videoContainer.remove();
         }
     }
 
