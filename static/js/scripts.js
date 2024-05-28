@@ -9,19 +9,19 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(stream => {
             localStream = stream;
-            addVideoStream(localStream, userId, true); // 自分の映像にはmutedを追加
+            addVideoStream(localStream, userId, true); // 自分のビデオにはミュート属性を付ける
 
             socket.emit('join', { room: meetingId, user_id: userId });
 
             socket.on('user_joined', (data) => {
-                console.log(`User joined: ${data.user_id}`);
+                console.log(`User joined: ${data.user_id}`);  // デバッグ用
                 if (data.user_id !== userId) {
                     callUser(data.user_id);
                 }
             });
 
             socket.on('user_left', (data) => {
-                console.log(`User left: ${data.user_id}`);
+                console.log(`User left: ${data.user_id}`);  // デバッグ用
                 removeVideoStream(data.user_id);
                 if (peers[data.user_id]) {
                     peers[data.user_id].close();
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             socket.on('offer', async (data) => {
-                console.log(`Received offer from ${data.source}`);
+                console.log(`Received offer from ${data.source}`);  // デバッグ用
                 if (data.target === userId) {
                     const peer = createPeer(data.source, false);
                     peers[data.source] = peer;
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             socket.on('answer', async (data) => {
-                console.log(`Received answer from ${data.source}`);
+                console.log(`Received answer from ${data.source}`);  // デバッグ用
                 if (data.target === userId) {
                     const peer = peers[data.source];
                     await peer.setRemoteDescription(new RTCSessionDescription(data.answer));
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             socket.on('ice_candidate', async (data) => {
-                console.log(`Received ICE candidate from ${data.source}`);
+                console.log(`Received ICE candidate from ${data.source}`);  // デバッグ用
                 if (data.target === userId) {
                     const peer = peers[data.source];
                     if (peer.remoteDescription) {
@@ -89,33 +89,36 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error accessing media devices:', error);
         });
 
-    function addVideoStream(stream, userId, muted = false) {
-        console.log(`Adding video stream for user ${userId}, muted=${muted}`);
-        const existingVideo = document.getElementById(`video_${userId}`);
-        if (existingVideo) {
-            existingVideo.remove();
-        }
+    function addVideoStream(stream, userId, isLocal = false) {
+        const videoContainer = document.createElement('div');
+        videoContainer.classList.add('video-container');
+
         const video = document.createElement('video');
         video.srcObject = stream;
         video.id = `video_${userId}`;
         video.autoplay = true;
         video.playsInline = true;
-        if (muted) {
+        if (isLocal) {
             video.muted = true;
         }
-        videosContainer.appendChild(video);
+
+        const username = document.createElement('div');
+        username.classList.add('username');
+        username.innerText = userId;
+
+        videoContainer.appendChild(video);
+        videoContainer.appendChild(username);
+        videosContainer.appendChild(videoContainer);
     }
 
     function removeVideoStream(userId) {
-        console.log(`Removing video stream for user ${userId}`);
-        const video = document.getElementById(`video_${userId}`);
-        if (video) {
-            video.remove();
+        const videoContainer = document.querySelector(`.video-container video#video_${userId}`).parentElement;
+        if (videoContainer) {
+            videoContainer.remove();
         }
     }
 
     function createPeer(targetUserId, initiator) {
-        console.log(`Creating peer for ${targetUserId} as initiator: ${initiator}`);
         const peer = new RTCPeerConnection({
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' }
@@ -124,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         peer.onicecandidate = (event) => {
             if (event.candidate) {
-                console.log(`Sending ICE candidate to ${targetUserId}`);
                 socket.emit('ice_candidate', {
                     room: meetingId,
                     target: targetUserId,
@@ -135,23 +137,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         peer.ontrack = (event) => {
-            console.log(`Adding track from ${targetUserId}`);
+            console.log(`Adding track from ${targetUserId}`);  // デバッグ用
             addVideoStream(event.streams[0], targetUserId);
         };
 
-        localStream.getTracks().forEach(track => {
-            console.log(`Adding track to peer for ${targetUserId}`);
-            peer.addTrack(track, localStream);
-        });
+        localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
 
         if (initiator) {
             peer.createOffer()
-                .then(offer => {
-                    console.log(`Created offer: ${JSON.stringify(offer)}`);
-                    return peer.setLocalDescription(offer);
-                })
+                .then(offer => peer.setLocalDescription(offer))
                 .then(() => {
-                    console.log(`Sending offer to ${targetUserId}`);
                     socket.emit('offer', {
                         room: meetingId,
                         target: targetUserId,
@@ -165,13 +160,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function callUser(targetUserId) {
-        console.log(`Calling user: ${targetUserId}`);
+        console.log(`Calling user: ${targetUserId}`);  // デバッグ用
         const peer = createPeer(targetUserId, true);
         peers[targetUserId] = peer;
     }
 
     document.getElementById('leaveMeetingBtn').addEventListener('click', () => {
-        console.log('Leaving meeting');
         socket.emit('leave', { room: meetingId, user_id: userId });
         window.location.href = '/';
     });
