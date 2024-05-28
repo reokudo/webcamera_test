@@ -9,6 +9,11 @@ body {
     height: 100vh;
 }
 
+#videos {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 .video-container {
     position: relative;
     display: inline-block;
@@ -16,8 +21,10 @@ body {
 }
 
 .video-container video {
-    width: 100%;
-    height: auto;
+    width: 200px;
+    height: 150px;
+    margin: 10px;
+    background: black;
 }
 
 .video-label {
