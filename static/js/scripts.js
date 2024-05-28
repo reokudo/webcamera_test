@@ -91,6 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addVideoStream(stream, userId, muted = false) {
         console.log(`Adding video stream for user ${userId}, muted=${muted}`);
+        
+        const videoContainer = document.createElement('div');
+        videoContainer.classList.add('video-container');
+        
         const existingVideo = document.getElementById(`video_${userId}`);
         if (existingVideo) {
             existingVideo.remove();
@@ -109,6 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         videosContainer.appendChild(video);
         videoContainer.appendChild(username);
+
+        videosContainer.appendChild(videoContainer);
     }
 
     function removeVideoStream(userId) {
